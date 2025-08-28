@@ -26,7 +26,7 @@ class SubscriptionControllerTest {
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"test@example.com\",\"city\":\"Kyiv\"}"))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
         assertThat(repository.count()).isEqualTo(1);
