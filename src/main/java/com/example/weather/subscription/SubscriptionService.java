@@ -1,5 +1,6 @@
 package com.example.weather.subscription;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,9 @@ public class SubscriptionService {
     }
 
     public void delete(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Subscription not found with id " + id);
+        }
         repository.deleteById(id);
     }
 }
