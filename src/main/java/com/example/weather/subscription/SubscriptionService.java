@@ -13,6 +13,11 @@ public class SubscriptionService {
     private final SubscriptionRepository repository;
 
     public Subscription create(SubscriptionRequest request) {
+        repository.findByEmailAndCity(request.email(), request.city())
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("Subscription already exists for this email and city");
+                });
+
         Subscription subscription = Subscription.builder()
                 .email(request.email())
                 .city(request.city())
