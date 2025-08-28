@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,5 +31,12 @@ class SubscriptionControllerTest {
                 .andExpect(jsonPath("$.id").exists());
 
         assertThat(repository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void deleteNonExistingIdReturnsNotFound() throws Exception {
+        repository.deleteAll();
+        mockMvc.perform(delete("/api/subscriptions/{id}", 999L))
+                .andExpect(status().isNotFound());
     }
 }
