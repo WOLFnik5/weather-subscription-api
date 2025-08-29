@@ -16,6 +16,12 @@ mvn test
 ```
 Requires PostgreSQL running at `localhost:5432` with database `weather` and user/password `postgres`/`postgres`.
 
+To use an in-memory H2 database, run the application with the `dev` profile:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
 ### Docker
 ```
 docker compose up --build
