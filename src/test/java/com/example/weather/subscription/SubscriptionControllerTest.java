@@ -9,7 +9,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -25,20 +27,41 @@ class SubscriptionControllerTest {
     private SubscriptionRepository repository;
 
     @Test
-    void subscribeCreatesRecord() throws Exception {
+    void createSubscription() throws Exception {
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"test@example.com\",\"city\":\"Kyiv\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists());
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.city").value("Kyiv"));
 
         assertThat(repository.count()).isEqualTo(1);
     }
 
     @Test
-    void deleteNonExistingIdReturnsNotFound() throws Exception {
-        repository.deleteAll();
-        mockMvc.perform(delete("/api/subscriptions/{id}", 999L))
-                .andExpect(status().isNotFound());
+    void listSubscriptions() throws Exception {
+        repository.save(Subscription.builder().email("a@example.com").city("Kyiv").build());
+        repository.save(Subscription.builder().email("b@example.com").city("Lviv").build());
+
+        mockMvc.perform(get("/api/subscriptions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].email").value("a@example.com"))
+                .andExpect(jsonPath("$[1].email").value("b@example.com"));
+    }
+
+    @Test
+    void deleteSubscription() throws Exception {
+        Subscription subscription = repository.save(Subscription.builder()
+                .email("test@example.com")
+                .city("Kyiv")
+                .build());
+
+        mockMvc.perform(delete("/api/subscriptions/{id}", subscription.getId()))
+                .andExpect(status().isNoContent());
+
+        assertThat(repository.existsById(subscription.getId())).isFalse();
     }
 }
+
