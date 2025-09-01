@@ -1,4 +1,4 @@
-package com.example.weather.weather;
+package com.example.weather.config;
 
 import java.time.Duration;
 
