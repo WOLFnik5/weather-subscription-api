@@ -1,7 +1,7 @@
 package com.example.weather.weather;
 
-import com.example.weather.notification.NotificationService;
-import com.example.weather.subscription.SubscriptionRepository;
+import com.example.weather.repository.SubscriptionRepository;
+import com.example.weather.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

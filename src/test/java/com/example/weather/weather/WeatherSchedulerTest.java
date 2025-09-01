@@ -1,8 +1,8 @@
 package com.example.weather.weather;
 
-import com.example.weather.notification.NotificationService;
-import com.example.weather.subscription.Subscription;
-import com.example.weather.subscription.SubscriptionRepository;
+import com.example.weather.model.Subscription;
+import com.example.weather.repository.SubscriptionRepository;
+import com.example.weather.service.NotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

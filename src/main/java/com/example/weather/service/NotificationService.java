@@ -1,4 +1,4 @@
-package com.example.weather.notification;
+package com.example.weather.service;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

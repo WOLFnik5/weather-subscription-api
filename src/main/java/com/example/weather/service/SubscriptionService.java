@@ -1,5 +1,8 @@
-package com.example.weather.subscription;
+package com.example.weather.service;
 
+import com.example.weather.model.Subscription;
+import com.example.weather.model.SubscriptionRequest;
+import com.example.weather.repository.SubscriptionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,14 +18,14 @@ public class SubscriptionService {
 
     @Transactional
     public Subscription create(SubscriptionRequest request) {
-        repository.findByEmailAndCity(request.email(), request.city())
+        repository.findByEmailAndCity(request.getEmail(), request.getCity())
                 .ifPresent(existing -> {
                     throw new IllegalArgumentException("Subscription already exists for this email and city");
                 });
 
         Subscription subscription = Subscription.builder()
-                .email(request.email())
-                .city(request.city())
+                .email(request.getEmail())
+                .city(request.getCity())
                 .build();
         return repository.save(subscription);
     }

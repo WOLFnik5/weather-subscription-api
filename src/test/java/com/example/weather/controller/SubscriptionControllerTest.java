@@ -1,5 +1,7 @@
-package com.example.weather.subscription;
+package com.example.weather.controller;
 
+import com.example.weather.model.Subscription;
+import com.example.weather.repository.SubscriptionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

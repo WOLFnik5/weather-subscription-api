@@ -1,5 +1,7 @@
-package com.example.weather.subscription;
+package com.example.weather.service;
 
+import com.example.weather.model.SubscriptionRequest;
+import com.example.weather.repository.SubscriptionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,5 +1,8 @@
-package com.example.weather.subscription;
+package com.example.weather.controller;
 
+import com.example.weather.model.Subscription;
+import com.example.weather.model.SubscriptionRequest;
+import com.example.weather.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
