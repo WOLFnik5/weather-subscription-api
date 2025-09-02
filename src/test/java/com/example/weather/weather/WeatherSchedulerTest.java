@@ -62,4 +62,33 @@ class WeatherSchedulerTest {
         assertThat(pageable.getPageNumber()).isEqualTo(0);
         assertThat(pageable.getPageSize()).isEqualTo(20);
     }
+
+    @Test
+    void fetchWeatherCalledOncePerCity() {
+        Subscription kyiv1 = Subscription.builder()
+                .email("a@example.com")
+                .city("Kyiv")
+                .build();
+        Subscription kyiv2 = Subscription.builder()
+                .email("b@example.com")
+                .city("Kyiv")
+                .build();
+        Subscription lviv = Subscription.builder()
+                .email("c@example.com")
+                .city("Lviv")
+                .build();
+
+        when(repository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(kyiv1, kyiv2, lviv)));
+        when(weatherClient.fetchCurrentTemperature("Kyiv")).thenReturn("20");
+        when(weatherClient.fetchCurrentTemperature("Lviv")).thenReturn("15");
+
+        scheduler.sendUpdates();
+
+        verify(weatherClient, times(1)).fetchCurrentTemperature("Kyiv");
+        verify(weatherClient, times(1)).fetchCurrentTemperature("Lviv");
+        verify(notificationService).send("a@example.com", "Weather in Kyiv is 20°C");
+        verify(notificationService).send("b@example.com", "Weather in Kyiv is 20°C");
+        verify(notificationService).send("c@example.com", "Weather in Lviv is 15°C");
+    }
 }
