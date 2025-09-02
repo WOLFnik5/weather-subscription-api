@@ -65,4 +65,13 @@ class SubscriptionServiceTest {
         service.delete(subscription.getId());
         assertThat(repository.existsById(subscription.getId())).isFalse();
     }
+
+    @Test
+    void creatingSubscriptionsWithDifferentEmailCaseIsNotAllowed() {
+        repository.deleteAll();
+        service.create(new SubscriptionRequest("User@example.com", "Kyiv"));
+        assertThatThrownBy(() -> service.create(new SubscriptionRequest("user@example.com", "Kyiv")))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(repository.count()).isEqualTo(1);
+    }
 }
