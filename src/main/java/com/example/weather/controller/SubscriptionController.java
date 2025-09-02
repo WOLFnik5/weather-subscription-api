@@ -5,10 +5,13 @@ import com.example.weather.model.SubscriptionDto;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.service.SubscriptionService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 @RestController
 @RequestMapping("/api/subscriptions")
 @RequiredArgsConstructor
+@Validated
 public class SubscriptionController {
 
     private final SubscriptionService service;
@@ -27,8 +31,8 @@ public class SubscriptionController {
     }
 
     @GetMapping
-    public Page<SubscriptionDto> list(@RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "20") int size) {
+    public Page<SubscriptionDto> list(@RequestParam(defaultValue = "0") @PositiveOrZero int page,
+                                      @RequestParam(defaultValue = "20") @Positive int size) {
         var pageable = PageRequest.of(page, size);
         return service.findAll(pageable)
                 .map(service::toDto);
