@@ -2,6 +2,7 @@ package com.example.weather.controller;
 
 import com.example.weather.model.Subscription;
 import com.example.weather.repository.SubscriptionRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -9,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -28,11 +31,17 @@ class SubscriptionControllerTest {
     @Autowired
     private SubscriptionRepository repository;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private String toJson(Object obj) throws Exception {
+        return objectMapper.writeValueAsString(obj);
+    }
+
     @Test
     void createSubscription() throws Exception {
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"test@example.com\",\"city\":\"Kyiv\"}"))
+                        .content(toJson(Map.of("email", "test@example.com", "city", "Kyiv"))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.email").value("test@example.com"))
@@ -45,7 +54,7 @@ class SubscriptionControllerTest {
     void invalidSubscriptionDataReturnsBadRequest() throws Exception {
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\\"email\\":\\"\\",\\"city\\":\\"Kyiv\\"}"))
+                        .content(toJson(Map.of("email", "", "city", "Kyiv"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").exists())
                 .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
@@ -102,12 +111,12 @@ class SubscriptionControllerTest {
     void duplicateSubscriptionReturnsBadRequest() throws Exception {
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"dup@example.com\",\"city\":\"Kyiv\"}"))
+                        .content(toJson(Map.of("email", "dup@example.com", "city", "Kyiv"))))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"dup@example.com\",\"city\":\"Kyiv\"}"))
+                        .content(toJson(Map.of("email", "dup@example.com", "city", "Kyiv"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Subscription already exists for this email and city"))
                 .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
