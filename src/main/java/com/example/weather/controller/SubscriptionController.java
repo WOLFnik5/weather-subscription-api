@@ -1,6 +1,7 @@
 package com.example.weather.controller;
 
 import com.example.weather.model.Subscription;
+import com.example.weather.model.SubscriptionDto;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.service.SubscriptionService;
 import jakarta.validation.Valid;
@@ -19,14 +20,16 @@ public class SubscriptionController {
     private final SubscriptionService service;
 
     @PostMapping
-    public ResponseEntity<Subscription> subscribe(@Valid @RequestBody SubscriptionRequest request) {
+    public ResponseEntity<SubscriptionDto> subscribe(@Valid @RequestBody SubscriptionRequest request) {
         Subscription subscription = service.create(request);
-        return new ResponseEntity<>(subscription, HttpStatus.CREATED);
+        return new ResponseEntity<>(service.toDto(subscription), HttpStatus.CREATED);
     }
 
     @GetMapping
-    public List<Subscription> list() {
-        return service.findAll();
+    public List<SubscriptionDto> list() {
+        return service.findAll().stream()
+                .map(service::toDto)
+                .toList();
     }
 
     @DeleteMapping("/{id}")

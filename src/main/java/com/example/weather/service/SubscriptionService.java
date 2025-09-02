@@ -1,6 +1,7 @@
 package com.example.weather.service;
 
 import com.example.weather.model.Subscription;
+import com.example.weather.model.SubscriptionDto;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.repository.SubscriptionRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,6 +16,14 @@ import java.util.List;
 public class SubscriptionService {
 
     private final SubscriptionRepository repository;
+
+    public SubscriptionDto toDto(Subscription subscription) {
+        return new SubscriptionDto(
+                subscription.getId(),
+                subscription.getEmail(),
+                subscription.getCity()
+        );
+    }
 
     @Transactional
     public Subscription create(SubscriptionRequest request) {

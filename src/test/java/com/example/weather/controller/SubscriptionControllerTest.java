@@ -49,8 +49,12 @@ class SubscriptionControllerTest {
         mockMvc.perform(get("/api/subscriptions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[0].email").value("a@example.com"))
-                .andExpect(jsonPath("$[1].email").value("b@example.com"));
+                .andExpect(jsonPath("$[0].city").value("Kyiv"))
+                .andExpect(jsonPath("$[1].id").exists())
+                .andExpect(jsonPath("$[1].email").value("b@example.com"))
+                .andExpect(jsonPath("$[1].city").value("Lviv"));
     }
 
     @Test
