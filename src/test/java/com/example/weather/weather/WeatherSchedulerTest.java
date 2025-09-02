@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -61,6 +62,7 @@ class WeatherSchedulerTest {
         Pageable pageable = captor.getValue();
         assertThat(pageable.getPageNumber()).isEqualTo(0);
         assertThat(pageable.getPageSize()).isEqualTo(20);
+        assertThat(pageable.getSort()).isEqualTo(Sort.by("id"));
     }
 
     @Test
