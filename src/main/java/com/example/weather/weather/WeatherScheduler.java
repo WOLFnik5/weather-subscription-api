@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -42,15 +43,20 @@ public class WeatherScheduler {
             pageable = page.nextPageable();
         } while (page.hasNext());
 
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         grouped.forEach((city, subs) -> {
             String temp = weatherClient.fetchCurrentTemperature(city);
             String message = temp.equals("n/a")
                     ? String.format("Weather in %s is unavailable", city)
                     : String.format("Weather in %s is %s°C", city, temp);
             subs.forEach(sub -> {
-                notificationService.send(sub.getEmail(), message);
-                log.info("Notified {} about {}", sub.getEmail(), city);
+                CompletableFuture<Void> future = notificationService.send(sub.getEmail(), message)
+                        .thenRun(() -> log.info("Notified {} about {}", sub.getEmail(), city));
+                futures.add(future);
             });
         });
+
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
     }
 }

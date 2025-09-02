@@ -4,9 +4,9 @@ import com.example.weather.model.Subscription;
 import com.example.weather.repository.SubscriptionRepository;
 import com.example.weather.service.NotificationService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -17,8 +17,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +48,8 @@ class WeatherSchedulerTest {
                 .build();
         when(repository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(sub)));
         when(weatherClient.fetchCurrentTemperature("Kyiv")).thenReturn(temp);
+        when(notificationService.send(anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(null));
 
         scheduler.sendUpdates();
 
@@ -84,6 +89,8 @@ class WeatherSchedulerTest {
                 .thenReturn(new PageImpl<>(List.of(kyiv1, kyiv2, lviv)));
         when(weatherClient.fetchCurrentTemperature("Kyiv")).thenReturn("20");
         when(weatherClient.fetchCurrentTemperature("Lviv")).thenReturn("15");
+        when(notificationService.send(anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(null));
 
         scheduler.sendUpdates();
 
@@ -92,5 +99,30 @@ class WeatherSchedulerTest {
         verify(notificationService).send("a@example.com", "Weather in Kyiv is 20°C");
         verify(notificationService).send("b@example.com", "Weather in Kyiv is 20°C");
         verify(notificationService).send("c@example.com", "Weather in Lviv is 15°C");
+    }
+
+    @Test
+    void sendUpdatesThrowsWhenNotificationFails() {
+        Subscription ok = Subscription.builder()
+                .email("a@example.com")
+                .city("Kyiv")
+                .build();
+        Subscription fail = Subscription.builder()
+                .email("b@example.com")
+                .city("Kyiv")
+                .build();
+
+        when(repository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(ok, fail)));
+        when(weatherClient.fetchCurrentTemperature("Kyiv")).thenReturn("25");
+
+        when(notificationService.send(eq("a@example.com"), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+        when(notificationService.send(eq("b@example.com"), anyString()))
+                .thenReturn(CompletableFuture.failedFuture(new RuntimeException("boom")));
+
+        assertThatThrownBy(() -> scheduler.sendUpdates())
+                .isInstanceOf(CompletionException.class)
+                .hasCauseInstanceOf(RuntimeException.class);
     }
 }
