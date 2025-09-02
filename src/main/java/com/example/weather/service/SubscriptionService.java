@@ -46,9 +46,10 @@ public class SubscriptionService {
 
     @Transactional
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Subscription not found with id " + id);
-        }
-        repository.deleteById(id);
+        repository.findById(id)
+                .ifPresentOrElse(repository::delete,
+                        () -> {
+                            throw new EntityNotFoundException("Subscription not found with id " + id);
+                        });
     }
 }
