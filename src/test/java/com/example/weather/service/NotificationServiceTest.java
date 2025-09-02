@@ -1,32 +1,27 @@
 package com.example.weather.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@TestPropertySource(properties = "app.mail.from=sender@example.com")
 class NotificationServiceTest {
 
-    @Mock
-    private JavaMailSender mailSender;
-
+    @Autowired
     private NotificationService service;
 
-    @BeforeEach
-    void setUp() {
-        service = new NotificationService(mailSender);
-        ReflectionTestUtils.setField(service, "mailFrom", "sender@example.com");
-    }
+    @MockBean
+    private JavaMailSender mailSender;
 
     @Test
     void sendSetsFromAddress() {
@@ -45,6 +40,17 @@ class NotificationServiceTest {
 
         assertThatThrownBy(() -> service.send("to@example.com", "msg").join())
                 .hasCause(ex);
+    }
+
+    @Test
+    void sendExecutesAsynchronously() {
+        String callingThread = Thread.currentThread().getName();
+
+        String asyncThread = service.send("to@example.com", "msg")
+                .thenApply(v -> Thread.currentThread().getName())
+                .join();
+
+        assertThat(asyncThread).isNotEqualTo(callingThread);
     }
 }
 
