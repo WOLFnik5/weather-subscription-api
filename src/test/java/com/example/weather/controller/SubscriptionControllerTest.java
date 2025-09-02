@@ -65,5 +65,30 @@ class SubscriptionControllerTest {
 
         assertThat(repository.existsById(subscription.getId())).isFalse();
     }
+
+    @Test
+    void deleteNonExistingSubscriptionReturnsNotFound() throws Exception {
+        mockMvc.perform(delete("/api/subscriptions/{id}", 999))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Subscription not found with id 999"))
+                .andExpect(jsonPath("$.errorCode").value("NOT_FOUND"));
+    }
+
+    @Test
+    void duplicateSubscriptionReturnsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/subscriptions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"dup@example.com\",\"city\":\"Kyiv\"}"))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/subscriptions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"dup@example.com\",\"city\":\"Kyiv\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Subscription already exists for this email and city"))
+                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+
+        assertThat(repository.count()).isEqualTo(1);
+    }
 }
 
