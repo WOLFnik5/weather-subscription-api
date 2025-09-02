@@ -6,6 +6,7 @@ import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.repository.SubscriptionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +37,11 @@ public class SubscriptionService {
                 .email(request.getEmail())
                 .city(request.getCity())
                 .build();
-        return repository.save(subscription);
+        try {
+            return repository.save(subscription);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Subscription already exists for this email and city");
+        }
     }
 
     @Transactional(readOnly = true)
