@@ -5,9 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class WeatherClient {
@@ -21,8 +19,11 @@ public class WeatherClient {
 
     public String fetchCurrentTemperature(String city) {
         try {
-            String url = "https://wttr.in/" + URLEncoder.encode(city, StandardCharsets.UTF_8) + "?format=j1";
-            JsonNode response = restTemplate.getForObject(url, JsonNode.class);
+            var uri = UriComponentsBuilder.fromHttpUrl("https://wttr.in/{city}")
+                    .queryParam("format", "j1")
+                    .buildAndExpand(city)
+                    .toUri();
+            JsonNode response = restTemplate.getForObject(uri, JsonNode.class);
             if (response == null) {
                 return "n/a";
             }
