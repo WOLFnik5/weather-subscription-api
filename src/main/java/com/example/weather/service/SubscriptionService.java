@@ -28,13 +28,15 @@ public class SubscriptionService {
 
     @Transactional
     public Subscription create(SubscriptionRequest request) {
-        repository.findByEmailAndCity(request.getEmail(), request.getCity())
+        String email = request.getEmail().toLowerCase();
+
+        repository.findByEmailAndCity(email, request.getCity())
                 .ifPresent(existing -> {
                     throw new IllegalArgumentException("Subscription already exists for this email and city");
                 });
 
         Subscription subscription = Subscription.builder()
-                .email(request.getEmail())
+                .email(email)
                 .city(request.getCity())
                 .build();
         try {
