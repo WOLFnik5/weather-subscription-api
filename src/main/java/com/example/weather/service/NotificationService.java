@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ public class NotificationService {
     private String mailFrom;
 
     @Async
-    public void send(String email, String message) {
+    public CompletableFuture<Void> send(String email, String message) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setFrom(mailFrom);
         mailMessage.setTo(email);
@@ -29,11 +29,10 @@ public class NotificationService {
         mailMessage.setText(message);
         try {
             mailSender.send(mailMessage);
-        } catch (MailException e) {
-            log.error("Failed to send notification to {}", email, e);
+            return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
-            log.error("Unexpected error while sending notification to {}", email, e);
-            throw e;
+            log.error("Failed to send notification to {}", email, e);
+            return CompletableFuture.failedFuture(e);
         }
     }
 }

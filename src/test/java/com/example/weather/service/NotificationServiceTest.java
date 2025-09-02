@@ -11,7 +11,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,18 +32,19 @@ class NotificationServiceTest {
     void sendSetsFromAddress() {
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
 
-        service.send("to@example.com", "msg");
+        service.send("to@example.com", "msg").join();
 
         verify(mailSender).send(captor.capture());
         assertThat(captor.getValue().getFrom()).isEqualTo("sender@example.com");
     }
 
     @Test
-    void nonMailExceptionsAreRethrown() {
+    void nonMailExceptionsCompleteFutureExceptionally() {
         RuntimeException ex = new RuntimeException("boom");
         doThrow(ex).when(mailSender).send(any(SimpleMailMessage.class));
 
-        assertThrows(RuntimeException.class, () -> service.send("to@example.com", "msg"));
+        assertThatThrownBy(() -> service.send("to@example.com", "msg").join())
+                .hasCause(ex);
     }
 }
 
