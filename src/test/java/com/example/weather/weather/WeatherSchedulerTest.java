@@ -4,6 +4,8 @@ import com.example.weather.model.Subscription;
 import com.example.weather.repository.SubscriptionRepository;
 import com.example.weather.service.NotificationService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -30,18 +32,22 @@ class WeatherSchedulerTest {
     @InjectMocks
     private WeatherScheduler scheduler;
 
-    @Test
-    void sendUpdatesUsesNotificationService() {
+    @ParameterizedTest
+    @CsvSource({
+            "23,Weather in Kyiv is 23°C",
+            "n/a,Weather in Kyiv is unavailable"
+    })
+    void sendUpdatesUsesNotificationService(String temp, String expectedMessage) {
         Subscription sub = Subscription.builder()
                 .email("test@example.com")
                 .city("Kyiv")
                 .build();
         when(repository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(sub)));
-        when(weatherClient.fetchCurrentTemperature("Kyiv")).thenReturn("23");
+        when(weatherClient.fetchCurrentTemperature("Kyiv")).thenReturn(temp);
 
         scheduler.sendUpdates();
 
-        verify(notificationService).send("test@example.com", "Weather in Kyiv is 23°C");
+        verify(notificationService).send("test@example.com", expectedMessage);
     }
 
     @Test
