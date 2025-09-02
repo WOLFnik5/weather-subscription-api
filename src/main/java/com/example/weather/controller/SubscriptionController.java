@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 @RestController
 @RequestMapping("/api/subscriptions")
 @RequiredArgsConstructor
+@Validated
 public class SubscriptionController {
 
     private final SubscriptionService service;
