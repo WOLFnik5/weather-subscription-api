@@ -42,6 +42,18 @@ class SubscriptionControllerTest {
     }
 
     @Test
+    void invalidSubscriptionDataReturnsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/subscriptions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\\"email\\":\\"\\",\\"city\\":\\"Kyiv\\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+
+        assertThat(repository.count()).isEqualTo(0);
+    }
+
+    @Test
     void listSubscriptions() throws Exception {
         repository.save(Subscription.builder().email("a@example.com").city("Kyiv").build());
         repository.save(Subscription.builder().email("b@example.com").city("Lviv").build());
