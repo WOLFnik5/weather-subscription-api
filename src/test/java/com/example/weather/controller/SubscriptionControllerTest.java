@@ -54,19 +54,27 @@ class SubscriptionControllerTest {
     }
 
     @Test
-    void listSubscriptions() throws Exception {
+    void listSubscriptionsReturnsFirstPage() throws Exception {
         repository.save(Subscription.builder().email("a@example.com").city("Kyiv").build());
         repository.save(Subscription.builder().email("b@example.com").city("Lviv").build());
 
-        mockMvc.perform(get("/api/subscriptions"))
+        mockMvc.perform(get("/api/subscriptions?page=0&size=1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].id").exists())
-                .andExpect(jsonPath("$[0].email").value("a@example.com"))
-                .andExpect(jsonPath("$[0].city").value("Kyiv"))
-                .andExpect(jsonPath("$[1].id").exists())
-                .andExpect(jsonPath("$[1].email").value("b@example.com"))
-                .andExpect(jsonPath("$[1].city").value("Lviv"));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].email").value("a@example.com"))
+                .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    void listSubscriptionsReturnsSecondPage() throws Exception {
+        repository.save(Subscription.builder().email("a@example.com").city("Kyiv").build());
+        repository.save(Subscription.builder().email("b@example.com").city("Lviv").build());
+
+        mockMvc.perform(get("/api/subscriptions?page=1&size=1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].email").value("b@example.com"))
+                .andExpect(jsonPath("$.totalElements").value(2));
     }
 
     @Test

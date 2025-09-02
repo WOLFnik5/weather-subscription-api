@@ -7,10 +7,10 @@ import com.example.weather.repository.SubscriptionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -47,8 +47,8 @@ public class SubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public List<Subscription> findAll() {
-        return repository.findAll();
+    public Page<Subscription> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     @Transactional

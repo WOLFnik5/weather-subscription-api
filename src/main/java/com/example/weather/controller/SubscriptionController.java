@@ -10,7 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @RestController
 @RequestMapping("/api/subscriptions")
@@ -26,10 +27,11 @@ public class SubscriptionController {
     }
 
     @GetMapping
-    public List<SubscriptionDto> list() {
-        return service.findAll().stream()
-                .map(service::toDto)
-                .toList();
+    public Page<SubscriptionDto> list(@RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "20") int size) {
+        var pageable = PageRequest.of(page, size);
+        return service.findAll(pageable)
+                .map(service::toDto);
     }
 
     @DeleteMapping("/{id}")
