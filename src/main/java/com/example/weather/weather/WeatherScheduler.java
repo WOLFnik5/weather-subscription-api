@@ -31,7 +31,12 @@ public class WeatherScheduler {
             page = repository.findAll(pageable);
             page.forEach(sub -> {
                 String temp = weatherClient.fetchCurrentTemperature(sub.getCity());
-                String message = String.format("Weather in %s is %s°C", sub.getCity(), temp);
+                String message;
+                if (temp.equals("n/a")) {
+                    message = String.format("Weather in %s is unavailable", sub.getCity());
+                } else {
+                    message = String.format("Weather in %s is %s°C", sub.getCity(), temp);
+                }
                 notificationService.send(sub.getEmail(), message);
                 log.info("Notified {} about {}", sub.getEmail(), sub.getCity());
             });
