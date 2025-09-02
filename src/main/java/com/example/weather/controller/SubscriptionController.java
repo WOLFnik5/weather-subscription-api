@@ -29,6 +29,9 @@ public class SubscriptionController {
     @GetMapping
     public Page<SubscriptionDto> list(@RequestParam(defaultValue = "0") int page,
                                       @RequestParam(defaultValue = "20") int size) {
+        if (size > 100) {
+            throw new IllegalArgumentException("Page size must be between 1 and 100");
+        }
         var pageable = PageRequest.of(page, size);
         return service.findAll(pageable)
                 .map(service::toDto);

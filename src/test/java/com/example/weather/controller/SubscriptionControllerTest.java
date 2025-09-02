@@ -87,6 +87,22 @@ class SubscriptionControllerTest {
     }
 
     @Test
+    void listSubscriptionsWithNegativePageReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/subscriptions?page=-1&size=1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void listSubscriptionsWithTooLargeSizeReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/subscriptions?page=0&size=101"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+    }
+
+    @Test
     void deleteSubscription() throws Exception {
         Subscription subscription = repository.save(Subscription.builder()
                 .email("test@example.com")
