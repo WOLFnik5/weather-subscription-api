@@ -5,12 +5,17 @@ import com.example.weather.repository.SubscriptionRepository;
 import com.example.weather.service.NotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,11 +36,24 @@ class WeatherSchedulerTest {
                 .email("test@example.com")
                 .city("Kyiv")
                 .build();
-        when(repository.findAll()).thenReturn(List.of(sub));
+        when(repository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(sub)));
         when(weatherClient.fetchCurrentTemperature("Kyiv")).thenReturn("23");
 
         scheduler.sendUpdates();
 
         verify(notificationService).send("test@example.com", "Weather in Kyiv is 23°C");
+    }
+
+    @Test
+    void findAllCalledWithExpectedPageable() {
+        when(repository.findAll(any(Pageable.class))).thenReturn(Page.empty());
+
+        scheduler.sendUpdates();
+
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(repository).findAll(captor.capture());
+        Pageable pageable = captor.getValue();
+        assertThat(pageable.getPageNumber()).isEqualTo(0);
+        assertThat(pageable.getPageSize()).isEqualTo(20);
     }
 }
