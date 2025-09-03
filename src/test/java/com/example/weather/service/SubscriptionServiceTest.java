@@ -60,10 +60,10 @@ class SubscriptionServiceTest {
                 Callable<Boolean> task = () -> {
                         try {
                                 service.create(req);
-                                return true;  // success
+                                return true;
                             } catch (RuntimeException ex) {
-                                // очікуємо DataIntegrityViolationException або виняток сервісу
-                                        return false; // duplicate rejected
+
+                                        return false;
                             }
                     };
 
@@ -73,7 +73,7 @@ class SubscriptionServiceTest {
                         boolean r1 = f1.get();
                 boolean r2 = f2.get();
 
-                        // рівно один успіх
+
                                 assertThat(r1 ^ r2).isTrue();
 
                         em.clear();
