@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.concurrent.Callable;
@@ -16,7 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 class SubscriptionServiceTest {
@@ -45,8 +44,7 @@ class SubscriptionServiceTest {
 
         service.create(req);
 
-        assertThatThrownBy(() -> service.create(req))
-                .isInstanceOfAny(DataIntegrityViolationException.class, RuntimeException.class);
+        assertThrows(IllegalArgumentException.class, () -> service.create(req));
 
         em.clear();
 
@@ -61,7 +59,7 @@ class SubscriptionServiceTest {
                         try {
                                 service.create(req);
                                 return true;
-                            } catch (RuntimeException ex) {
+                            } catch (IllegalArgumentException ex) {
 
                                         return false;
                             }
