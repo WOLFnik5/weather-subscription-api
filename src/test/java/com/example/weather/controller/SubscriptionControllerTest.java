@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -58,5 +59,23 @@ class SubscriptionControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.city").value("Kyiv"));
+    }
+
+    @Test
+    void listSubscriptionsPageNegativeReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/subscriptions").param("page", "-1"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void listSubscriptionsSizeLessThanOneReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/subscriptions").param("size", "0"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void listSubscriptionsSizeGreaterThanHundredReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/subscriptions").param("size", "101"))
+                .andExpect(status().isBadRequest());
     }
 }
