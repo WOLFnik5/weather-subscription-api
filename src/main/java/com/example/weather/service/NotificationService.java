@@ -20,7 +20,7 @@ public class NotificationService {
     @Value("${app.mail.from:no-reply@example.com}")
     private String mailFrom;
 
-    @Async
+    @Async("taskExecutor")
     public CompletableFuture<Void> send(String email, String message) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setFrom(mailFrom);
