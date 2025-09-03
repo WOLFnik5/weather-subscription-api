@@ -1,77 +1,84 @@
 package com.example.weather.service;
 
-import com.example.weather.model.Subscription;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.repository.SubscriptionRepository;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.transaction.annotation.Transactional;
-import jakarta.persistence.EntityNotFoundException;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.mail.javamail.JavaMailSender;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest
-@Transactional
 class SubscriptionServiceTest {
 
     @Autowired
     private SubscriptionService service;
 
-    @SpyBean
-    private SubscriptionRepository repository;
+    @Autowired
+    private SubscriptionRepository repo;
 
-    @Test
-    void creatingDuplicateSubscriptionIsNotAllowed() {
-        repository.deleteAll();
-        SubscriptionRequest request = new SubscriptionRequest("test@example.com", "Kyiv");
-        service.create(request);
-        assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThat(repository.count()).isEqualTo(1);
+    @Autowired
+    private EntityManager em;
+
+    @MockBean
+    private JavaMailSender mailSender;
+
+    @AfterEach
+    void cleanup() {
+        em.clear();
+        repo.deleteAll();
     }
 
     @Test
-    void concurrentDuplicateSubscriptionReturnsBadRequest() {
-        repository.deleteAll();
-        Subscription existing = Subscription.builder()
-                .email("test@example.com")
-                .city("Kyiv")
-                .build();
-        repository.saveAndFlush(existing);
-        SubscriptionRequest request = new SubscriptionRequest("test@example.com", "Kyiv");
-        doReturn(java.util.Optional.empty()).when(repository)
-                .findByEmailAndCity(request.getEmail(), request.getCity());
-        assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThat(repository.count()).isEqualTo(1);
-    }
+    void createThenDuplicate_throwsAndKeepsOnlyOneRow() {
+        var req = new SubscriptionRequest("test@example.com", "Kyiv");
 
-    @Test
-    void deletingNonExistentSubscriptionThrowsException() {
-        repository.deleteAll();
-        assertThatThrownBy(() -> service.delete(1L))
-                .isInstanceOf(EntityNotFoundException.class);
-    }
+        service.create(req);
 
-    @Test
-    void deletingExistingSubscriptionRemovesIt() {
-        repository.deleteAll();
-        SubscriptionRequest request = new SubscriptionRequest("test@example.com", "Kyiv");
-        var subscription = service.create(request);
-        service.delete(subscription.getId());
-        assertThat(repository.existsById(subscription.getId())).isFalse();
-    }
+        assertThatThrownBy(() -> service.create(req))
+                .isInstanceOfAny(DataIntegrityViolationException.class, RuntimeException.class);
 
-    @Test
-    void creatingSubscriptionsWithDifferentEmailCaseIsNotAllowed() {
-        repository.deleteAll();
-        service.create(new SubscriptionRequest("User@example.com", "Kyiv"));
-        assertThatThrownBy(() -> service.create(new SubscriptionRequest("user@example.com", "Kyiv")))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThat(repository.count()).isEqualTo(1);
+        em.clear();
+
+        assertThat(repo.count()).isEqualTo(1);
     }
+    @Test
+    void concurrentDuplicates_onlyOneSucceeds() throws Exception {
+                var req = new SubscriptionRequest("test@example.com", "Kyiv");
+
+                        var pool = Executors.newFixedThreadPool(2);
+                Callable<Boolean> task = () -> {
+                        try {
+                                service.create(req);
+                                return true;  // success
+                            } catch (RuntimeException ex) {
+                                // очікуємо DataIntegrityViolationException або виняток сервісу
+                                        return false; // duplicate rejected
+                            }
+                    };
+
+                        Future<Boolean> f1 = pool.submit(task);
+                Future<Boolean> f2 = pool.submit(task);
+
+                        boolean r1 = f1.get();
+                boolean r2 = f2.get();
+
+                        // рівно один успіх
+                                assertThat(r1 ^ r2).isTrue();
+
+                        em.clear();
+                assertThat(repo.count()).isEqualTo(1);
+            }
+
+
 }

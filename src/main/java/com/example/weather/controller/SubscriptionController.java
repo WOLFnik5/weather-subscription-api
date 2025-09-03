@@ -20,6 +20,7 @@ public class SubscriptionController {
 
     private final SubscriptionService service;
 
+
     @PostMapping
     public ResponseEntity<SubscriptionDto> subscribe(@Valid @RequestBody SubscriptionRequest request) {
         Subscription subscription = service.create(request);

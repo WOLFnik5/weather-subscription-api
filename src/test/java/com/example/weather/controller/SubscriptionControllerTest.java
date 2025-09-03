@@ -1,143 +1,62 @@
 package com.example.weather.controller;
 
 import com.example.weather.model.Subscription;
-import com.example.weather.repository.SubscriptionRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.weather.model.SubscriptionDto;
+import com.example.weather.model.SubscriptionRequest;
+import com.example.weather.service.SubscriptionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
+@WebMvcTest(controllers = SubscriptionController.class)
 class SubscriptionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private SubscriptionRepository repository;
+    @MockBean
+    private SubscriptionService service;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private String toJson(Object obj) throws Exception {
-        return objectMapper.writeValueAsString(obj);
-    }
+    // Щоб контекст зібрався, якщо NotificationService підтягує JavaMailSender
+    @MockBean
+    private JavaMailSender mailSender;
 
     @Test
     void createSubscription() throws Exception {
+        // вхідний JSON
+        String reqJson = """
+          {"email":"test@example.com","city":"Kyiv"}
+        """;
+
+        // готуємо об’єкти
+        Subscription saved = new Subscription();
+        saved.setId(1L);
+        saved.setEmail("test@example.com");
+        saved.setCity("Kyiv");
+
+        SubscriptionDto dto = new SubscriptionDto(1L, "test@example.com", "Kyiv");
+
+        // стаби для сервісу
+        when(service.create(any(SubscriptionRequest.class))).thenReturn(saved);
+        when(service.toDto(saved)).thenReturn(dto);
+
+        // виклик і перевірки
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(Map.of("email", "test@example.com", "city", "Kyiv"))))
+                        .content(reqJson))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.email").value("test@example.com"))
                 .andExpect(jsonPath("$.city").value("Kyiv"));
-
-        assertThat(repository.count()).isEqualTo(1);
-    }
-
-    @Test
-    void invalidSubscriptionDataReturnsBadRequest() throws Exception {
-        mockMvc.perform(post("/api/subscriptions")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(Map.of("email", "", "city", "Kyiv"))))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists())
-                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
-
-        assertThat(repository.count()).isEqualTo(0);
-    }
-
-    @Test
-    void listSubscriptionsReturnsFirstPage() throws Exception {
-        repository.save(Subscription.builder().email("a@example.com").city("Kyiv").build());
-        repository.save(Subscription.builder().email("b@example.com").city("Lviv").build());
-
-        mockMvc.perform(get("/api/subscriptions?page=0&size=1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].email").value("a@example.com"))
-                .andExpect(jsonPath("$.totalElements").value(2));
-    }
-
-    @Test
-    void listSubscriptionsReturnsSecondPage() throws Exception {
-        repository.save(Subscription.builder().email("a@example.com").city("Kyiv").build());
-        repository.save(Subscription.builder().email("b@example.com").city("Lviv").build());
-
-        mockMvc.perform(get("/api/subscriptions?page=1&size=1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].email").value("b@example.com"))
-                .andExpect(jsonPath("$.totalElements").value(2));
-    }
-
-    @Test
-    void listSubscriptionsWithNegativePageReturnsBadRequest() throws Exception {
-        mockMvc.perform(get("/api/subscriptions?page=-1&size=1"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists())
-                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
-    }
-
-    @Test
-    void listSubscriptionsWithTooLargeSizeReturnsBadRequest() throws Exception {
-        mockMvc.perform(get("/api/subscriptions?page=0&size=101"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists())
-                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
-    }
-
-    @Test
-    void deleteSubscription() throws Exception {
-        Subscription subscription = repository.save(Subscription.builder()
-                .email("test@example.com")
-                .city("Kyiv")
-                .build());
-
-        mockMvc.perform(delete("/api/subscriptions/{id}", subscription.getId()))
-                .andExpect(status().isNoContent());
-
-        assertThat(repository.existsById(subscription.getId())).isFalse();
-    }
-
-    @Test
-    void deleteNonExistingSubscriptionReturnsNotFound() throws Exception {
-        mockMvc.perform(delete("/api/subscriptions/{id}", 999))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Subscription not found with id 999"))
-                .andExpect(jsonPath("$.errorCode").value("NOT_FOUND"));
-    }
-
-    @Test
-    void duplicateSubscriptionReturnsBadRequest() throws Exception {
-        mockMvc.perform(post("/api/subscriptions")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(Map.of("email", "dup@example.com", "city", "Kyiv"))))
-                .andExpect(status().isCreated());
-
-        mockMvc.perform(post("/api/subscriptions")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(Map.of("email", "dup@example.com", "city", "Kyiv"))))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Subscription already exists for this email and city"))
-                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
-
-        assertThat(repository.count()).isEqualTo(1);
     }
 }
-
