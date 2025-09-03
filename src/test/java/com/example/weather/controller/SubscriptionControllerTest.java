@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.containsString;
 
 @WebMvcTest(controllers = SubscriptionController.class)
 class SubscriptionControllerTest {
@@ -68,6 +69,39 @@ class SubscriptionControllerTest {
     }
 
     @Test
+    void createSubscriptionInvalidBody() throws Exception {
+        String reqJson = """
+          {"email":"","city":"Kyiv"}
+        """;
+
+        mockMvc.perform(post("/api/subscriptions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(reqJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message", containsString("email: must not be blank")))
+                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void createSubscriptionDuplicate() throws Exception {
+        String reqJson = """
+          {"email":"test@example.com","city":"Kyiv"}
+        """;
+
+        when(service.create(any(SubscriptionRequest.class)))
+                .thenThrow(new IllegalArgumentException("Subscription already exists for this email and city"));
+
+        mockMvc.perform(post("/api/subscriptions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(reqJson))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Subscription already exists for this email and city"))
+                .andExpect(jsonPath("$.errorCode").value("CONFLICT"));
+    }
+
+    @Test
     void listSubscriptions() throws Exception {
         Subscription s1 = new Subscription();
         s1.setId(1L);
@@ -94,6 +128,16 @@ class SubscriptionControllerTest {
                 .andExpect(jsonPath("$.content[0].id").value(1))
                 .andExpect(jsonPath("$.content[1].city").value("Lviv"))
                 .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    void listSubscriptionsInvalidSize() throws Exception {
+        mockMvc.perform(get("/api/subscriptions")
+                        .param("size", "101"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Page size must be between 1 and 100"))
+                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
     }
 
     @Test
