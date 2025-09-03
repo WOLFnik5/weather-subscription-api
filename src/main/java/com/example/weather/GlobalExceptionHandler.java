@@ -2,6 +2,7 @@ package com.example.weather;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,9 +22,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleIllegalArgument(IllegalArgumentException ex) {
-        return new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.name());
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        String message = ex.getMessage();
+        if (message != null && message.toLowerCase().contains("already exists")) {
+            status = HttpStatus.CONFLICT;
+        }
+        ErrorResponse response = new ErrorResponse(message, status.name());
+        return new ResponseEntity<>(response, status);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
