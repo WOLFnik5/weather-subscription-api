@@ -1,82 +1,146 @@
 # Weather Subscription API
 
-Simple Spring Boot service that lets users subscribe to regular weather updates for a chosen city.
-Subscriptions are persisted in PostgreSQL and database schema is managed via Flyway migrations.
+A compact Spring Boot service that lets users **subscribe to weather updates by city** and receive email notifications.  
+Tech highlights: REST API, validation, JPA + Flyway, async mail sending, scheduled jobs, external HTTP client, Docker.
 
-## Quick Start
+## Features
+- Subscribe with **email + city** (unique pair).
+- **List** subscriptions with pagination (`page`, `size` with guard `1..100`).
+- **Delete** a subscription by id.
+- Hourly (configurable) **scheduled job** that:
+  - Fetches current temperature per city (demo public API via `RestTemplate`).
+  - Sends emails **asynchronously** using `@Async` and a pooled `TaskExecutor`.
+- Errors are mapped to clean JSON via `@RestControllerAdvice`.
 
-```bash
-docker compose up --build
+## Tech Stack
+- Java 21, Spring Boot 3 (Web, Validation, Data JPA, Mail, Scheduling, Async)
+- PostgreSQL + **Flyway** migrations
+- Testing: JUnit 5, Mockito
+- Docker & Docker Compose
+
+## Project Layout
+```
+weather-subscription-api/
+  src/main/java/com/example/weather
+    ├── controller/SubscriptionController.java
+    ├── service/{SubscriptionService, NotificationService}.java
+    ├── repository/SubscriptionRepository.java
+    ├── model/{Subscription, SubscriptionRequest, SubscriptionDto, ErrorResponse}.java
+    ├── weather/{WeatherClient, WeatherScheduler}.java
+    └── config/{AsyncConfig, WeatherConfig}.java
+  src/main/resources
+    ├── application.properties
+    ├── application-dev.properties
+    └── db/migration/V{1,2,3}__*.sql
+  Dockerfile
+  docker-compose.yml
+  pom.xml
 ```
 
-This launches the application and a PostgreSQL database.
+## API
+Base path: `/api/subscriptions`
 
-## Development
+### Create subscription
+`POST /api/subscriptions`  
+Request body:
+```json
+{ "email": "user@example.com", "city": "Kyiv" }
+```
+Responses:
+- `201 Created` — returns created DTO `{ "id": 1, "email": "...", "city": "..." }`
+- `400 Bad Request` — validation errors
+- `409 Conflict` — duplicate (unique constraint on `email+city`)
 
-### Run tests
-```bash
-mvn test
+### List subscriptions
+`GET /api/subscriptions?page=0&size=20`  
+- `size` allowed range: **1..100**
+- Response: Spring `Page` of DTOs
+
+### Delete subscription
+`DELETE /api/subscriptions/{id}`  
+- `204 No Content` on success
+- `404 Not Found` if id doesn’t exist
+
+## Configuration
+`src/main/resources/application.properties` exposes env-driven settings. Key ones:
+
+**Database**
+```
+SPRING_DATASOURCE_URL     (default jdbc:postgresql://localhost:5432/weather)
+SPRING_DATASOURCE_USERNAME (default postgres)
+SPRING_DATASOURCE_PASSWORD (default postgres)
 ```
 
-### Run locally
+**Mail**
+```
+SPRING_MAIL_HOST (default localhost)
+SPRING_MAIL_PORT (default 1025)
+SPRING_MAIL_USERNAME
+SPRING_MAIL_PASSWORD
+SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH (default false)
+SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE (default false)
+APP_MAIL_FROM (default no-reply@example.com)
+```
+
+## Run Locally (no Docker)
 ```bash
 ./mvnw spring-boot:run
 ```
-Requires PostgreSQL running at `localhost:5432` with database `weather` and user/password `postgres`/`postgres`.
+Profiles:
+- `default` — Postgres on localhost:5432, Flyway enabled
+- `dev` — H2 in-memory + Mailhog-style SMTP (see `application-dev.properties`)
 
-To use an in-memory H2 database, run the application with the `dev` profile:
-
+Use:  
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 ```
 
-## Environment Variables
+## Run with Docker Compose (recommended)
+```bash
+docker compose up --build
+# app → http://localhost:8080
+# db  → postgres:5432 (user: postgres / pass: postgres / db: weather)
+```
+Compose wires JDBC URL to the containerized Postgres automatically.
 
-### Database
+> Tip: add MailHog for local email preview (optional):
+>
+> ```yaml
+>   mailhog:
+>     image: mailhog/mailhog
+>     ports: ["1025:1025", "8025:8025"]
+> ```
+> Then set `SPRING_MAIL_HOST=mailhog` and open UI at `http://localhost:8025`.
 
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
+## Testing
+```bash
+./mvnw -q test
+```
+- Unit tests cover controller/service/scheduler/client.
+- To run with a different profile: `SPRING_PROFILES_ACTIVE=dev ./mvnw test`.
 
-### Mail
+> CI workflow is included below; it runs tests on JDK 21 and uploads test reports.
 
-- `SPRING_MAIL_HOST`
-- `SPRING_MAIL_PORT`
-- `SPRING_MAIL_USERNAME`
-- `SPRING_MAIL_PASSWORD`
-- `SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH`
-- `SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE`
-- `APP_MAIL_FROM`
+## Async & Scheduling Notes
+- `@EnableAsync` and a pooled **ThreadPoolTaskExecutor** (`weather-*` thread prefix).
+- `@EnableScheduling`: a job iterates subscriptions in pages and sends emails concurrently.
+- `NotificationService#send` is asynchronous — tests assert that work completes off the `main` thread.
 
-Outgoing emails are logged; during development a local tool such as MailHog can
-be used to inspect messages.
+## Database Migrations
+Flyway scripts:
+- `V1__create_subscription_table.sql`
+- `V2__add_unique_constraint_to_subscription.sql`
+- `V3__add_lower_email_city_index.sql` (unique on `lower(email), city` to prevent case-duplicates)
 
-## API
+## What this project demonstrates (for resume)
+- Clean REST design with validation and error mapping
+- Persistence + schema evolution with Flyway
+- Async processing, thread pools, and scheduled tasks
+- External HTTP integration with timeouts and logging
+- Containerization and env-based configuration
+- Solid tests with Mockito/JUnit 5
 
-- `POST /api/subscriptions` – create a new subscription.
+---
 
-  ```bash
-  curl -X POST http://localhost:8080/api/subscriptions \
-    -H 'Content-Type: application/json' \
-    -d '{"email":"user@example.com","city":"Kyiv"}'
-  ```
-
-- `GET /api/subscriptions` – list all subscriptions.
-
-  ```bash
-  curl "http://localhost:8080/api/subscriptions?page=0&size=20"
-  ```
-
-- `DELETE /api/subscriptions/{id}` – remove a subscription.
-
-  ```bash
-  curl -X DELETE http://localhost:8080/api/subscriptions/1
-  ```
-
-## What I Demonstrated in this Project
-
-- Spring Boot REST API
-- PostgreSQL with Flyway migrations
-- Scheduled notifications
-- Asynchronous email sending
-- Docker Compose for local development
+### How to import the workflow
+Copy `.github/workflows/ci.yml` from this package to your repo (see file provided alongside this README).
