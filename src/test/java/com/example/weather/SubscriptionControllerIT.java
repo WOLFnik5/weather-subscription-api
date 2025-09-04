@@ -3,7 +3,7 @@ package com.example.weather;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
+
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -27,14 +27,14 @@ class SubscriptionControllerIT {
 
     @Container
     static final PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"))
+            new PostgreSQLContainer<>(("postgres:16-alpine"))
                     .withDatabaseName("weather")
                     .withUsername("test")
                     .withPassword("test");
 
     @Container
     static final GenericContainer<?> mailhog =
-            new GenericContainer<>(DockerImageName.parse("mailhog/mailhog:latest"))
+            new GenericContainer<>(("mailhog/mailhog:latest"))
                     .withExposedPorts(1025, 8025); // 1025 SMTP, 8025 Web UI/API
 
     @DynamicPropertySource
