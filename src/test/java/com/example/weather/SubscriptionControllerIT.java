@@ -57,8 +57,6 @@ class SubscriptionControllerIT {
 //         r.add("spring.flyway.enabled", () -> "false");
     }
 
-    @Autowired
-    JdbcTemplate jdbcTemplate;
 
     @Autowired
     JavaMailSender mailSender;
