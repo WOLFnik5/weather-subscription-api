@@ -3,6 +3,14 @@
 Simple Spring Boot service that lets users subscribe to regular weather updates for a chosen city.
 Subscriptions are persisted in PostgreSQL and database schema is managed via Flyway migrations.
 
+## Quick Start
+
+```bash
+docker compose up --build
+```
+
+This launches the application and a PostgreSQL database.
+
 ## Development
 
 ### Run tests
@@ -22,16 +30,15 @@ To use an in-memory H2 database, run the application with the `dev` profile:
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-### Docker
-```
-docker compose up --build
-```
-This starts the application and a PostgreSQL database.
+## Environment Variables
 
-### Email configuration
+### Database
 
-SMTP settings are configurable via environment variables and override the defaults in
-`src/main/resources/application.properties`:
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+
+### Mail
 
 - `SPRING_MAIL_HOST`
 - `SPRING_MAIL_PORT`
@@ -39,12 +46,37 @@ SMTP settings are configurable via environment variables and override the defaul
 - `SPRING_MAIL_PASSWORD`
 - `SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH`
 - `SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE`
+- `APP_MAIL_FROM`
 
-For local development the `dev` profile configures a local SMTP server on `localhost:1025`
-with authentication and TLS disabled. Tools like MailHog can capture messages sent during
-development.
+Outgoing emails are logged; during development a local tool such as MailHog can
+be used to inspect messages.
 
 ## API
-- `POST /api/subscriptions` – create a new subscription. Example body: `{ "email": "user@example.com", "city": "Kyiv" }`
+
+- `POST /api/subscriptions` – create a new subscription.
+
+  ```bash
+  curl -X POST http://localhost:8080/api/subscriptions \
+    -H 'Content-Type: application/json' \
+    -d '{"email":"user@example.com","city":"Kyiv"}'
+  ```
+
 - `GET /api/subscriptions` – list all subscriptions.
+
+  ```bash
+  curl "http://localhost:8080/api/subscriptions?page=0&size=20"
+  ```
+
 - `DELETE /api/subscriptions/{id}` – remove a subscription.
+
+  ```bash
+  curl -X DELETE http://localhost:8080/api/subscriptions/1
+  ```
+
+## What I Demonstrated in this Project
+
+- Spring Boot REST API
+- PostgreSQL with Flyway migrations
+- Scheduled notifications
+- Asynchronous email sending
+- Docker Compose for local development
