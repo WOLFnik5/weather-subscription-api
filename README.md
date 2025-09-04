@@ -9,8 +9,7 @@ Subscriptions are persisted in PostgreSQL and database schema is managed via Fly
 docker compose up --build
 ```
 
-This launches the application, a PostgreSQL database, and MailHog. Open
-`http://localhost:8025` to view the MailHog inbox.
+This launches the application and a PostgreSQL database.
 
 ## Development
 
@@ -29,14 +28,6 @@ To use an in-memory H2 database, run the application with the `dev` profile:
 
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-### Swagger UI
-
-When the application is running, interactive API documentation is available at:
-
-```
-http://localhost:8080/swagger-ui.html
 ```
 
 ## Environment Variables
