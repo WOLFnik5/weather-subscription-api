@@ -30,6 +30,14 @@ To use an in-memory H2 database, run the application with the `dev` profile:
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
+### Swagger UI
+
+When the application is running, interactive API documentation is available at:
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
 ## Environment Variables
 
 ### Database

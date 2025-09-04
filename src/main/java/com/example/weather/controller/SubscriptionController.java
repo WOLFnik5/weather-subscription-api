@@ -12,24 +12,29 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/subscriptions")
 @RequiredArgsConstructor
+@Tag(name = "Subscriptions")
 public class SubscriptionController {
 
     private final SubscriptionService service;
 
 
     @PostMapping
+    @Operation(summary = "Create subscription")
     public ResponseEntity<SubscriptionDto> subscribe(@Valid @RequestBody SubscriptionRequest request) {
         Subscription subscription = service.create(request);
         return new ResponseEntity<>(service.toDto(subscription), HttpStatus.CREATED);
     }
 
     @GetMapping
+    @Operation(summary = "List subscriptions")
     public Page<SubscriptionDto> list(@RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "20") int size) {
+                                       @RequestParam(defaultValue = "20") int size) {
         if (size > 100) {
             throw new IllegalArgumentException("Page size must be between 1 and 100");
         }
@@ -40,6 +45,7 @@ public class SubscriptionController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete subscription")
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
