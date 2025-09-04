@@ -9,7 +9,8 @@ Subscriptions are persisted in PostgreSQL and database schema is managed via Fly
 docker compose up --build
 ```
 
-This launches the application and a PostgreSQL database.
+This launches the application, a PostgreSQL database, and MailHog. Open
+`http://localhost:8025` to view the MailHog inbox.
 
 ## Development
 

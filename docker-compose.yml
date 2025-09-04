@@ -8,13 +8,20 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
   app:
     build: .
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/weather
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_MAIL_HOST: mailhog
     ports:
       - "8080:8080"
     depends_on:
       - db
+      - mailhog
