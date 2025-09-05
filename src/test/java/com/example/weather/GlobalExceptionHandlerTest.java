@@ -18,7 +18,7 @@ class GlobalExceptionHandlerTest {
     private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
     @Test
-    void handleEntityNotFound() throws Exception {
+    void handleEntityNotFound() throws NoSuchMethodException {
         EntityNotFoundException ex = new EntityNotFoundException("not found");
 
         ErrorResponse response = handler.handleEntityNotFound(ex);
@@ -46,7 +46,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleValidationErrors() throws Exception {
+    void handleValidationErrors() throws NoSuchMethodException {
         BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(new Object(), "obj");
         bindingResult.addError(new FieldError("obj", "email", "must not be blank"));
         bindingResult.addError(new FieldError("obj", "city", "must not be blank"));
@@ -65,6 +65,18 @@ class GlobalExceptionHandlerTest {
                 .getAnnotation(ResponseStatus.class);
         assertNotNull(status);
         assertEquals(HttpStatus.BAD_REQUEST, status.value());
+    }
+
+    @Test
+    void handleIllegalArgumentConflict() {
+        IllegalArgumentException ex = new IllegalArgumentException("already exists");
+
+        ResponseEntity<ErrorResponse> entity = handler.handleIllegalArgument(ex);
+
+        assertEquals(HttpStatus.CONFLICT, entity.getStatusCode());
+        assertNotNull(entity.getBody());
+        assertEquals("already exists", entity.getBody().getMessage());
+        assertEquals(HttpStatus.CONFLICT.name(), entity.getBody().getErrorCode());
     }
 
     @SuppressWarnings("unused")

@@ -14,6 +14,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -43,8 +45,10 @@ class NotificationServiceTest {
         RuntimeException ex = new RuntimeException("boom");
         doThrow(ex).when(mailSender).send(any(SimpleMailMessage.class));
 
-        assertThatThrownBy(() -> service.send("to@example.com", "msg").join())
-                .hasCause(ex);
+        CompletableFuture<Void> future = service.send("to@example.com", "msg");
+
+        assertThatThrownBy(future::join).hasCause(ex);
+        assertThat(future.isCompletedExceptionally()).isTrue();
     }
 
     @Test

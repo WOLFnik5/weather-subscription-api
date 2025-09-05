@@ -14,7 +14,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -33,10 +32,6 @@ class SubscriptionControllerTest {
 
     @MockBean
     private SubscriptionService service;
-
-    // Щоб контекст зібрався, якщо NotificationService підтягує JavaMailSender
-    @MockBean
-    private JavaMailSender mailSender;
 
     @Test
     void createSubscription() throws Exception {
@@ -137,6 +132,16 @@ class SubscriptionControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("Page size must be between 1 and 100"))
+                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void listSubscriptionsNegativePage() throws Exception {
+        mockMvc.perform(get("/api/subscriptions")
+                        .param("page", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message", containsString("must not be less than zero")))
                 .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
     }
 
