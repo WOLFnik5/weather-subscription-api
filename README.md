@@ -101,19 +101,11 @@ SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 ## Run with Docker Compose (recommended)
 ```bash
 docker compose up --build
-# app → http://localhost:8080
-# db  → postgres:5432 (user: postgres / pass: postgres / db: weather)
+# app     → http://localhost:8080
+# db      → postgres:5432 (user: postgres / pass: postgres / db: weather)
+# mailhog → http://localhost:8025 (SMTP: 1025)
 ```
-Compose wires JDBC URL to the containerized Postgres automatically.
-
-> Tip: add MailHog for local email preview (optional):
->
-> ```yaml
->   mailhog:
->     image: mailhog/mailhog
->     ports: ["1025:1025", "8025:8025"]
-> ```
-> Then set `SPRING_MAIL_HOST=mailhog` and open UI at `http://localhost:8025`.
+Compose wires JDBC URL to the containerized Postgres and SMTP to the bundled MailHog service automatically.
 
 ## Testing
 ```bash
