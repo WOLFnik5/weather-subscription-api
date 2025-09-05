@@ -1,6 +1,9 @@
 # Weather Subscription API
 
-A compact Spring Boot service that lets users **subscribe to weather updates by city** and receive email notifications.  
+[![CI](https://github.com/OWNER/weather-subscription-api/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/weather-subscription-api/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-0%25-lightgrey)](https://github.com/OWNER/weather-subscription-api/actions/workflows/ci.yml)
+
+A compact Spring Boot service that lets users **subscribe to weather updates by city** and receive email notifications.
 Tech highlights: REST API, validation, JPA + Flyway, async mail sending, scheduled jobs, external HTTP client, Docker.
 
 ## Features
