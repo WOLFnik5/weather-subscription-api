@@ -21,7 +21,7 @@ jobs:
           cache: 'maven'
 
       - name: Build, test & coverage
-        run: mvn -B -ntp verify
+        run: ./mvnw -B -ntp verify
 
       - name: Upload surefire reports
         if: always()
@@ -31,6 +31,7 @@ jobs:
           path: |
             **/target/surefire-reports/**
             **/target/failsafe-reports/**
+          if-no-files-found: ignore
 
       - name: Upload JaCoCo HTML report
         if: always()
