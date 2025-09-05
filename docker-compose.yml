@@ -20,6 +20,7 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
     ports:
       - "8080:8080"
     depends_on:
