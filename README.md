@@ -91,7 +91,7 @@ APP_MAIL_FROM (default no-reply@example.com)
 ```
 Profiles:
 - `default` — Postgres on localhost:5432, Flyway enabled
-- `dev` — H2 in-memory + Mailhog-style SMTP (see `application-dev.properties`)
+- `dev` — H2 in-memory + MailHog-style SMTP (defaults to `localhost`; override with `SPRING_MAIL_HOST` if needed)
 
 Use:  
 ```bash
