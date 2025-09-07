@@ -4,6 +4,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 
+@SuppressWarnings({"unused", "squid:S1172"})
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
