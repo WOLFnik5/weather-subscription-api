@@ -1,10 +1,11 @@
 package com.example.weather.controller;
 
+import com.example.weather.exception.BadRequestException;
+import com.example.weather.exception.NotFoundException;
 import com.example.weather.model.Subscription;
 import com.example.weather.model.SubscriptionDto;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.service.SubscriptionService;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -74,8 +75,9 @@ class SubscriptionControllerTest {
                         .content(reqJson))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message", containsString("email: must not be blank")))
-                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors.email[0]").value("must not be blank"));
     }
 
     @Test
@@ -85,15 +87,16 @@ class SubscriptionControllerTest {
         """;
 
         when(service.create(any(SubscriptionRequest.class)))
-                .thenThrow(new IllegalArgumentException("Subscription already exists for this email and city"));
+                .thenThrow(new BadRequestException("Subscription already exists for this email and city"));
 
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(reqJson))
-                .andExpect(status().isConflict())
+                .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("Subscription already exists for this email and city"))
-                .andExpect(jsonPath("$.errorCode").value("CONFLICT"));
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.detail").value("Subscription already exists for this email and city"))
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
@@ -131,8 +134,9 @@ class SubscriptionControllerTest {
                         .param("size", "101"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("Page size must be between 1 and 100"))
-                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.detail").value("Page size must be between 1 and 100"))
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
@@ -141,8 +145,9 @@ class SubscriptionControllerTest {
                         .param("page", "-1"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message", containsString("must not be less than zero")))
-                .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
+                .andExpect(jsonPath("$.title").value("Bad Request"))
+                .andExpect(jsonPath("$.detail", containsString("must not be less than zero")))
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
@@ -155,13 +160,14 @@ class SubscriptionControllerTest {
 
     @Test
     void deleteSubscriptionNotFound() throws Exception {
-        doThrow(new EntityNotFoundException("Subscription not found with id 99"))
+        doThrow(new NotFoundException("Subscription not found with id 99"))
                 .when(service).delete(99L);
 
         mockMvc.perform(delete("/api/subscriptions/{id}", 99L))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("Subscription not found with id 99"))
-                .andExpect(jsonPath("$.errorCode").value("NOT_FOUND"));
+                .andExpect(jsonPath("$.title").value("Resource not found"))
+                .andExpect(jsonPath("$.detail").value("Subscription not found with id 99"))
+                .andExpect(jsonPath("$.status").value(404));
     }
 }

@@ -1,5 +1,6 @@
 package com.example.weather.service;
 
+import com.example.weather.exception.BadRequestException;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.repository.SubscriptionRepository;
 import jakarta.persistence.EntityManager;
@@ -44,7 +45,7 @@ class SubscriptionServiceTest {
 
         service.create(req);
 
-        assertThrows(IllegalArgumentException.class, () -> service.create(req));
+        assertThrows(BadRequestException.class, () -> service.create(req));
 
         em.clear();
 
@@ -59,9 +60,8 @@ class SubscriptionServiceTest {
                         try {
                                 service.create(req);
                                 return true;
-                            } catch (IllegalArgumentException ex) {
-
-                                        return false;
+                            } catch (BadRequestException ex) {
+                                return false;
                             }
                     };
 
