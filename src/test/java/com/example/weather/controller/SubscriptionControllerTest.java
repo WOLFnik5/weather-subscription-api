@@ -73,7 +73,7 @@ class SubscriptionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(reqJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.message", containsString("email: must not be blank")))
                 .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
     }
@@ -91,7 +91,7 @@ class SubscriptionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(reqJson))
                 .andExpect(status().isConflict())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.message").value("Subscription already exists for this email and city"))
                 .andExpect(jsonPath("$.errorCode").value("CONFLICT"));
     }
@@ -130,7 +130,7 @@ class SubscriptionControllerTest {
         mockMvc.perform(get("/api/subscriptions")
                         .param("size", "101"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.message").value("Page size must be between 1 and 100"))
                 .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
     }
@@ -140,7 +140,7 @@ class SubscriptionControllerTest {
         mockMvc.perform(get("/api/subscriptions")
                         .param("page", "-1"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.message", containsString("must not be less than zero")))
                 .andExpect(jsonPath("$.errorCode").value("BAD_REQUEST"));
     }
@@ -160,7 +160,7 @@ class SubscriptionControllerTest {
 
         mockMvc.perform(delete("/api/subscriptions/{id}", 99L))
                 .andExpect(status().isNotFound())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.message").value("Subscription not found with id 99"))
                 .andExpect(jsonPath("$.errorCode").value("NOT_FOUND"));
     }
