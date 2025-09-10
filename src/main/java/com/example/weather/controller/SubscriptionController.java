@@ -8,6 +8,7 @@ import com.example.weather.service.SubscriptionService;
 import com.example.weather.mapper.SubscriptionMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/subscriptions")
 @RequiredArgsConstructor
 @Tag(name = "Subscriptions")
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2",
+        justification = "Spring-managed services are treated as immutable dependencies")
 public class SubscriptionController {
 
     private final SubscriptionService service;
