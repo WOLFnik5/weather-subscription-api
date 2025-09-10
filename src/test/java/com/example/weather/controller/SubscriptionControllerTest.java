@@ -1,5 +1,7 @@
 package com.example.weather.controller;
 
+import org.springframework.context.annotation.Import;
+
 import com.example.weather.exception.BadRequestException;
 import com.example.weather.exception.NotFoundException;
 import com.example.weather.entity.Subscription;
