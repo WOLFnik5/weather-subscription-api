@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import java.util.Locale;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = {Locale.class})
 public interface SubscriptionMapper {
 
     SubscriptionDto toDto(Subscription subscription);
