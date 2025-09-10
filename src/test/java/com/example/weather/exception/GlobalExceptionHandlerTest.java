@@ -1,7 +1,14 @@
 package com.example.weather.exception;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,6 +47,33 @@ class GlobalExceptionHandlerTest {
         assertNotNull(body);
         assertEquals("Internal error", body.getTitle());
         assertEquals("Unexpected error", body.getDetail());
+    }
+
+    @Test
+    void handleValidation() throws NoSuchMethodException {
+        class Dummy {
+            @SuppressWarnings("unused")
+            void method(String arg) {
+            }
+        }
+        var bindingResult = new BeanPropertyBindingResult(new Object(), "obj");
+        bindingResult.addError(new FieldError("obj", "name", "must not be blank"));
+        bindingResult.addError(new FieldError("obj", "name", "size must be 3"));
+        bindingResult.addError(new FieldError("obj", "age", "must be positive"));
+        var method = Dummy.class.getDeclaredMethod("method", String.class);
+        var parameter = new MethodParameter(method, 0);
+        var ex = new MethodArgumentNotValidException(parameter, bindingResult);
+
+        var response = handler.handleValidation(ex);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        var body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Bad Request", body.getTitle());
+        @SuppressWarnings("unchecked")
+        var errors = (Map<String, List<String>>) body.getProperties().get("errors");
+        assertNotNull(errors);
+        assertEquals(List.of("must not be blank", "size must be 3"), errors.get("name"));
+        assertEquals(List.of("must be positive"), errors.get("age"));
     }
 }
 
