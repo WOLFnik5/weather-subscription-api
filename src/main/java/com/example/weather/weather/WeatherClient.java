@@ -3,7 +3,6 @@ package com.example.weather.weather;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestClientException;
@@ -15,8 +14,8 @@ public class WeatherClient {
 
     private final RestTemplate restTemplate;
 
-    public WeatherClient(RestTemplateBuilder builder) {
-        this.restTemplate = builder.build();
+    public WeatherClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     public String fetchCurrentTemperature(String city) {
