@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
@@ -35,7 +36,7 @@ public class WeatherClient {
                     return temp.asText();
                 }
             }
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             logger.error("Failed to fetch current temperature for city: {}", city, e);
         }
         return "n/a";
