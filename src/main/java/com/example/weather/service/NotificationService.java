@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -31,7 +32,7 @@ public class NotificationService {
         try {
             mailSender.send(mailMessage);
             return CompletableFuture.completedFuture(null);
-        } catch (RestClientException e) {
+        } catch (RestClientException | MailException e) {
             log.error("Failed to send notification to {}", email, e);
             return CompletableFuture.failedFuture(e);
         }
