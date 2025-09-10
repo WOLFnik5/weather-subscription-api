@@ -1,9 +1,9 @@
 package com.example.weather.controller;
 
 import com.example.weather.exception.BadRequestException;
-import com.example.weather.model.Subscription;
-import com.example.weather.model.SubscriptionDto;
-import com.example.weather.model.SubscriptionRequest;
+import com.example.weather.entity.Subscription;
+import com.example.weather.dto.SubscriptionDto;
+import com.example.weather.dto.request.SubscriptionRequest;
 import com.example.weather.service.SubscriptionService;
 import com.example.weather.mapper.SubscriptionMapper;
 import jakarta.validation.Valid;

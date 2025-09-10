@@ -28,7 +28,9 @@ weather-subscription-api/
     ├── controller/SubscriptionController.java
     ├── service/{SubscriptionService, NotificationService}.java
     ├── repository/SubscriptionRepository.java
-    ├── model/{Subscription, SubscriptionRequest, SubscriptionDto, ErrorResponse}.java
+    ├── entity/Subscription.java
+    ├── dto/{SubscriptionDto, ErrorResponse}.java
+    ├── dto/request/SubscriptionRequest.java
     ├── weather/{WeatherClient, WeatherScheduler}.java
     └── config/{AsyncConfig, WeatherConfig}.java
   src/main/resources

@@ -1,4 +1,4 @@
-package com.example.weather.model;
+package com.example.weather.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
