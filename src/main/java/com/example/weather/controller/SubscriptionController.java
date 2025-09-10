@@ -5,6 +5,7 @@ import com.example.weather.model.Subscription;
 import com.example.weather.model.SubscriptionDto;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.service.SubscriptionService;
+import com.example.weather.mapper.SubscriptionMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,13 +24,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class SubscriptionController {
 
     private final SubscriptionService service;
+    private final SubscriptionMapper mapper;
 
 
     @PostMapping
     @Operation(summary = "Create subscription")
     public ResponseEntity<SubscriptionDto> subscribe(@Valid @RequestBody SubscriptionRequest request) {
         Subscription subscription = service.create(request);
-        return new ResponseEntity<>(service.toDto(subscription), HttpStatus.CREATED);
+        return new ResponseEntity<>(mapper.toDto(subscription), HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -44,7 +46,7 @@ public class SubscriptionController {
         }
         var pageable = PageRequest.of(page, size);
         return service.findAll(pageable)
-                .map(service::toDto);
+                .map(mapper::toDto);
     }
 
     @DeleteMapping("/{id}")
