@@ -3,9 +3,9 @@ package com.example.weather.controller;
 import com.example.weather.exception.BadRequestException;
 import com.example.weather.exception.NotFoundException;
 import com.example.weather.model.Subscription;
-import com.example.weather.model.SubscriptionDto;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.service.SubscriptionService;
+import com.example.weather.mapper.SubscriptionMapperImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.hamcrest.Matchers.containsString;
 
 @WebMvcTest(controllers = SubscriptionController.class)
+@Import(SubscriptionMapperImpl.class)
 class SubscriptionControllerTest {
 
     @Autowired
@@ -47,11 +48,8 @@ class SubscriptionControllerTest {
         saved.setEmail("test@example.com");
         saved.setCity("Kyiv");
 
-        SubscriptionDto dto = new SubscriptionDto(1L, "test@example.com", "Kyiv");
-
         // стаби для сервісу
         when(service.create(any(SubscriptionRequest.class))).thenReturn(saved);
-        when(service.toDto(saved)).thenReturn(dto);
 
         // виклик і перевірки
         mockMvc.perform(post("/api/subscriptions")
@@ -114,8 +112,6 @@ class SubscriptionControllerTest {
         Page<Subscription> page = new PageImpl<>(List.of(s1, s2), PageRequest.of(0, 2), 2);
 
         when(service.findAll(any(Pageable.class))).thenReturn(page);
-        when(service.toDto(s1)).thenReturn(new SubscriptionDto(1L, "user1@example.com", "Kyiv"));
-        when(service.toDto(s2)).thenReturn(new SubscriptionDto(2L, "user2@example.com", "Lviv"));
 
         mockMvc.perform(get("/api/subscriptions")
                         .param("page", "0")
