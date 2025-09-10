@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ProblemDetail> handleBadRequest(BadRequestException ex) {
         var pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        pd.setTitle("Bad request");
+        pd.setTitle("Bad Request");
         return ResponseEntity.badRequest().body(pd);
     }
 

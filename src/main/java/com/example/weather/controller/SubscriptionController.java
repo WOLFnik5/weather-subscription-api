@@ -1,5 +1,6 @@
 package com.example.weather.controller;
 
+import com.example.weather.exception.BadRequestException;
 import com.example.weather.model.Subscription;
 import com.example.weather.model.SubscriptionDto;
 import com.example.weather.model.SubscriptionRequest;
@@ -35,8 +36,11 @@ public class SubscriptionController {
     @Operation(summary = "List subscriptions")
     public Page<SubscriptionDto> list(@RequestParam(defaultValue = "0") int page,
                                        @RequestParam(defaultValue = "20") int size) {
-        if (size > 100) {
-            throw new IllegalArgumentException("Page size must be between 1 and 100");
+        if (page < 0) {
+            throw new BadRequestException("Page index must not be less than zero");
+        }
+        if (size < 1 || size > 100) {
+            throw new BadRequestException("Page size must be between 1 and 100");
         }
         var pageable = PageRequest.of(page, size);
         return service.findAll(pageable)

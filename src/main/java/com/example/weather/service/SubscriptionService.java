@@ -1,10 +1,11 @@
 package com.example.weather.service;
 
+import com.example.weather.exception.BadRequestException;
+import com.example.weather.exception.NotFoundException;
 import com.example.weather.model.Subscription;
 import com.example.weather.model.SubscriptionDto;
 import com.example.weather.model.SubscriptionRequest;
 import com.example.weather.repository.SubscriptionRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -32,7 +33,7 @@ public class SubscriptionService {
 
         repository.findByEmailAndCity(email, request.getCity())
                 .ifPresent(existing -> {
-                    throw new IllegalArgumentException("Subscription already exists for this email and city");
+                    throw new BadRequestException("Subscription already exists for this email and city");
                 });
 
         Subscription subscription = Subscription.builder()
@@ -42,7 +43,7 @@ public class SubscriptionService {
         try {
             return repository.save(subscription);
         } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("Subscription already exists for this email and city");
+            throw new BadRequestException("Subscription already exists for this email and city", e);
         }
     }
 
@@ -56,7 +57,7 @@ public class SubscriptionService {
         repository.findById(id)
                 .ifPresentOrElse(repository::delete,
                         () -> {
-                            throw new EntityNotFoundException("Subscription not found with id " + id);
+                            throw new NotFoundException("Subscription not found with id " + id);
                         });
     }
 }
