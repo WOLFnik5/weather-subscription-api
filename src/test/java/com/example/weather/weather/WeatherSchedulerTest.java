@@ -1,6 +1,6 @@
 package com.example.weather.weather;
 
-import com.example.weather.model.Subscription;
+import com.example.weather.entity.Subscription;
 import com.example.weather.repository.SubscriptionRepository;
 import com.example.weather.service.NotificationService;
 import org.junit.jupiter.api.Test;

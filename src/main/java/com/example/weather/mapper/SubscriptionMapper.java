@@ -1,8 +1,8 @@
 package com.example.weather.mapper;
 
-import com.example.weather.model.Subscription;
-import com.example.weather.model.SubscriptionDto;
-import com.example.weather.model.SubscriptionRequest;
+import com.example.weather.entity.Subscription;
+import com.example.weather.dto.SubscriptionDto;
+import com.example.weather.dto.request.SubscriptionRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

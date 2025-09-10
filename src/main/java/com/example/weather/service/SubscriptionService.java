@@ -2,8 +2,8 @@ package com.example.weather.service;
 
 import com.example.weather.exception.BadRequestException;
 import com.example.weather.exception.NotFoundException;
-import com.example.weather.model.Subscription;
-import com.example.weather.model.SubscriptionRequest;
+import com.example.weather.entity.Subscription;
+import com.example.weather.dto.request.SubscriptionRequest;
 import com.example.weather.repository.SubscriptionRepository;
 import com.example.weather.mapper.SubscriptionMapper;
 import lombok.RequiredArgsConstructor;

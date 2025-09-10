@@ -1,7 +1,7 @@
 package com.example.weather.service;
 
 import com.example.weather.exception.BadRequestException;
-import com.example.weather.model.SubscriptionRequest;
+import com.example.weather.dto.request.SubscriptionRequest;
 import com.example.weather.repository.SubscriptionRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;

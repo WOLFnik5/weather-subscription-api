@@ -1,4 +1,4 @@
-package com.example.weather.model;
+package com.example.weather.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
