@@ -19,7 +19,7 @@ public class WeatherClient {
 
     public String fetchCurrentTemperature(String city) {
         try {
-            var uri = UriComponentsBuilder.fromHttpUrl("https://wttr.in/{city}")
+            var uri = UriComponentsBuilder.fromUriString("https://wttr.in/{city}")
                     .queryParam("format", "j1")
                     .buildAndExpand(city)
                     .toUri();
