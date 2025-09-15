@@ -41,8 +41,8 @@ public class NotificationService {
             mailSender.send(mailMessage);
             return CompletableFuture.completedFuture(null);
         } catch (MailException e) {
-            log.error("Failed to send notification to {}", email, e);
-            throw new NotificationException(email, e);
+            log.error("Failed to send notification to " + email, e);
+            return CompletableFuture.failedFuture(new com.example.weather.exception.NotificationException(email, e));
         }
     }
 }
