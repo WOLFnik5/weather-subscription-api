@@ -1,5 +1,6 @@
 package com.example.weather.service;
 
+import com.example.weather.exception.NotificationException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -28,19 +29,20 @@ public class NotificationService {
     @Value("${app.mail.from:no-reply@example.com}")
     private String mailFrom;
 
+    @Async("taskExecutor")
     public CompletableFuture<Void> send(String email, String message) {
-        return CompletableFuture.runAsync(() -> {
+        try {
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setFrom(mailFrom);
             mailMessage.setTo(email);
             mailMessage.setSubject("Weather update");
             mailMessage.setText(message);
-            try {
-                mailSender.send(mailMessage);
-            } catch (RestClientException | MailException e) {
-                log.error("Failed to send notification to {}", email, e);
-                throw e;
-            }
-        }, taskExecutor);
+
+            mailSender.send(mailMessage);
+            return CompletableFuture.completedFuture(null);
+        } catch (MailException e) {
+            log.error("Failed to send notification to {}", email, e);
+            throw new NotificationException(email, e);
+        }
     }
 }

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.mail.MailSendException;
@@ -16,6 +17,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,6 +31,10 @@ class NotificationServiceTest {
 
     @MockitoBean
     private JavaMailSender mailSender;
+
+    @Autowired
+    @Qualifier("taskExecutor")
+    private Executor executor;
 
     @Autowired
     NotificationServiceTest(NotificationService service, JavaMailSender mailSender) {
@@ -82,7 +88,7 @@ class NotificationServiceTest {
         String callingThread = Thread.currentThread().getName();
 
         String asyncThread = service.send("to@example.com", "msg")
-                .thenApply(v -> Thread.currentThread().getName())
+                .thenApplyAsync(v -> Thread.currentThread().getName(), executor)
                 .join();
 
         assertThat(asyncThread).isNotEqualTo(callingThread);

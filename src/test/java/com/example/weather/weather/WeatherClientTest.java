@@ -64,7 +64,7 @@ class WeatherClientTest {
         String temp = client.fetchCurrentTemperature("Kyiv");
 
         assertThat(temp).isEqualTo("n/a");
-        assertThat(output.getAll()).contains("Failed to fetch current temperature for city: Kyiv");
+        assertThat(output).contains("Unexpected error while fetching current temperature for city: Kyiv");
     }
 }
 
