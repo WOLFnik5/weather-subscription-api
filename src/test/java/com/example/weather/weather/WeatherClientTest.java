@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -23,16 +22,13 @@ import static org.mockito.Mockito.when;
 class WeatherClientTest {
 
     @Mock
-    private RestTemplateBuilder builder;
-    @Mock
     private RestTemplate restTemplate;
 
     private WeatherClient client;
 
     @BeforeEach
     void setUp() {
-        when(builder.build()).thenReturn(restTemplate);
-        client = new WeatherClient(builder);
+        client = new WeatherClient(restTemplate);
     }
 
     @Test
