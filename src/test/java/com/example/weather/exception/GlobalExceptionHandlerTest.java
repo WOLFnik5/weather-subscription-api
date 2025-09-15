@@ -54,6 +54,9 @@ class GlobalExceptionHandlerTest {
         class Dummy {
             @SuppressWarnings("unused")
             void method(String arg) {
+                // Intentionally left blank: method body is not needed.
+                // This method only exists so that MethodParameter can be created
+                // for testing the validation error handling.
             }
         }
         var bindingResult = new BeanPropertyBindingResult(new Object(), "obj");
