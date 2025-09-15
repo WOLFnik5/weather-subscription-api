@@ -12,8 +12,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,17 +23,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 class SubscriptionServiceTest {
 
-    @Autowired
-    private SubscriptionService service;
-
-    @Autowired
-    private SubscriptionRepository repo;
-
-    @Autowired
-    private EntityManager em;
+    private final SubscriptionService service;
+    private final SubscriptionRepository repo;
+    private final EntityManager em;
 
     @MockitoBean
+    @SuppressWarnings("unused")
     private JavaMailSender mailSender;
+
+    @Autowired
+    SubscriptionServiceTest(SubscriptionService service,
+                            SubscriptionRepository repo,
+                            EntityManager em) {
+        this.service = service;
+        this.repo = repo;
+        this.em = em;
+    }
 
     @AfterEach
     void cleanup() {
@@ -51,32 +58,43 @@ class SubscriptionServiceTest {
 
         assertThat(repo.count()).isEqualTo(1);
     }
+
     @Test
     void concurrentDuplicates_onlyOneSucceeds() throws Exception {
-                var req = new SubscriptionRequest("test@example.com", "Kyiv");
+        var req = new SubscriptionRequest("test@example.com", "Kyiv");
 
-                        var pool = Executors.newFixedThreadPool(2);
-                Callable<Boolean> task = () -> {
-                        try {
-                                service.create(req);
-                                return true;
-                            } catch (BadRequestException ex) {
-                                return false;
-                            }
-                    };
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            Callable<Boolean> task = () -> {
+                try {
+                    service.create(req);
+                    return true;
+                } catch (BadRequestException ex) {
+                    return false;
+                }
+            };
 
-                        Future<Boolean> f1 = pool.submit(task);
-                Future<Boolean> f2 = pool.submit(task);
+            Future<Boolean> first = pool.submit(task);
+            Future<Boolean> second = pool.submit(task);
 
-                        boolean r1 = f1.get();
-                boolean r2 = f2.get();
+            boolean firstResult = first.get();
+            boolean secondResult = second.get();
 
-
-                                assertThat(r1 ^ r2).isTrue();
-
-                        em.clear();
-                assertThat(repo.count()).isEqualTo(1);
+            assertThat(firstResult ^ secondResult).isTrue();
+        } finally {
+            pool.shutdown();
+            try {
+                if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
+                    pool.shutdownNow();
+                }
+            } catch (InterruptedException ex) {
+                pool.shutdownNow();
+                Thread.currentThread().interrupt();
+                throw ex;
             }
+        }
 
-
+        em.clear();
+        assertThat(repo.count()).isEqualTo(1);
+    }
 }
