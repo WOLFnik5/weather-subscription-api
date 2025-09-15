@@ -26,10 +26,11 @@ class NotificationServiceTest {
 
     private final NotificationService service;
 
-    private final JavaMailSender mailSender;
+    @MockBean
+    private JavaMailSender mailSender;
 
     @Autowired
-    NotificationServiceTest(NotificationService service, @MockBean JavaMailSender mailSender) {
+    NotificationServiceTest(NotificationService service, JavaMailSender mailSender) {
         this.service = service;
         this.mailSender = mailSender;
     }
