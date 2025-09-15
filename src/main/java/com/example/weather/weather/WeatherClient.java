@@ -40,6 +40,9 @@ public class WeatherClient {
             logger.error("Failed to fetch current temperature for city: {}", city, e);
         } catch (IllegalArgumentException e) {
             logger.error("Invalid URI while fetching current temperature for city: {}", city, e);
+        } catch (RuntimeException e) {
+            logger.error("Unexpected error while fetching current temperature for city: {}", city, e);
+            return "n/a";
         }
         return "n/a";
     }
