@@ -8,11 +8,11 @@ import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -24,11 +24,15 @@ import static org.mockito.Mockito.*;
 @TestPropertySource(properties = "app.mail.from=sender@example.com")
 class NotificationServiceTest {
 
-    @Autowired
-    private NotificationService service;
+    private final NotificationService service;
 
-    @MockitoBean
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
+
+    @Autowired
+    NotificationServiceTest(NotificationService service, @MockBean JavaMailSender mailSender) {
+        this.service = service;
+        this.mailSender = mailSender;
+    }
 
     @Test
     void sendSetsFromAddress() {
