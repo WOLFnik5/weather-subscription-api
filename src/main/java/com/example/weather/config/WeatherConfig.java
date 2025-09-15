@@ -5,6 +5,7 @@ import java.time.Duration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Configuration for weather-related beans.
@@ -13,16 +14,17 @@ import org.springframework.context.annotation.Configuration;
 public class WeatherConfig {
 
     /**
-     * RestTemplateBuilder configured with connect and read timeouts.
+     * RestTemplate configured with connect and read timeouts.
      *
      * @param builder default RestTemplate builder
-     * @return configured RestTemplateBuilder
+     * @return configured RestTemplate
      */
     @Bean
-    public RestTemplateBuilder restTemplateBuilder(RestTemplateBuilder builder) {
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder
                 .setConnectTimeout(Duration.ofSeconds(5))
-                .setReadTimeout(Duration.ofSeconds(5));
+                .setReadTimeout(Duration.ofSeconds(5))
+                .build();
     }
 }
 
