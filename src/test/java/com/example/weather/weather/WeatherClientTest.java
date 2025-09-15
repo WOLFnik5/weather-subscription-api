@@ -10,11 +10,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -56,14 +58,23 @@ class WeatherClientTest {
     }
 
     @Test
-    void logsAndReturnsNaOnException(CapturedOutput output) {
+    void logsAndReturnsNaOnRestClientException(CapturedOutput output) {
         when(restTemplate.getForObject(any(URI.class), eq(JsonNode.class)))
-                .thenThrow(new RuntimeException("boom"));
+                .thenThrow(new RestClientException("boom"));
 
         String temp = client.fetchCurrentTemperature("Kyiv");
 
         assertThat(temp).isEqualTo("n/a");
         assertThat(output.getAll()).contains("Failed to fetch current temperature for city: Kyiv");
+    }
+
+    @Test
+    void propagatesOtherRuntimeException() {
+        when(restTemplate.getForObject(any(URI.class), eq(JsonNode.class)))
+                .thenThrow(new RuntimeException("boom"));
+
+        assertThatThrownBy(() -> client.fetchCurrentTemperature("Kyiv"))
+                .isInstanceOf(RuntimeException.class);
     }
 }
 
