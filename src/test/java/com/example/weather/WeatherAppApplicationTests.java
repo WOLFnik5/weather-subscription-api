@@ -9,10 +9,11 @@ import org.springframework.mail.javamail.JavaMailSender;
 class WeatherAppApplicationTests {
 
     @MockBean
-    private JavaMailSender mailSender;
+    @SuppressWarnings("unused")
+    private JavaMailSender unusedMailSender;
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }
