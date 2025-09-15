@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -44,6 +45,7 @@ public class WeatherScheduler {
         } while (page.hasNext());
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
+        List<String> failures = new CopyOnWriteArrayList<>();
 
         grouped.forEach((city, subs) -> {
             String temp = weatherClient.fetchCurrentTemperature(city);
@@ -52,11 +54,25 @@ public class WeatherScheduler {
                     : String.format("Weather in %s is %s°C", city, temp);
             subs.forEach(sub -> {
                 CompletableFuture<Void> future = notificationService.send(sub.getEmail(), message)
-                        .thenRun(() -> log.info("Notified {} about {}", sub.getEmail(), city));
+                        .thenRun(() -> log.info("Notified {} about {}", sub.getEmail(), city))
+                        .exceptionally(ex -> {
+                            log.error("Failed to notify {} about {}", sub.getEmail(), city, ex);
+                            failures.add(sub.getEmail());
+                            return null;
+                        });
                 futures.add(future);
             });
         });
 
-        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+                .whenComplete((unused, throwable) -> {
+                    if (throwable != null) {
+                        log.error("Unexpected error while waiting for weather notifications to finish", throwable);
+                    }
+                    if (!failures.isEmpty()) {
+                        log.warn("Failed to send {} notifications: {}", failures.size(), failures);
+                    }
+                })
+                .join();
     }
 }
