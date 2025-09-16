@@ -1,6 +1,6 @@
 # Weather Subscription API
 
-[![CI](https://github.com/<your-username>/weather-subscription-api/.github/workflows/ci.yml)](https://github.com/<your-username>/weather-subscription-api/.github/workflows/ci.yml)
+[![CI](https://github.com/WOLFnik5/weather-subscription-api/actions/workflows/ci.yml/badge.svg)](https://github.com/WOLFnik5/weather-subscription-api/actions/workflows/ci.yml)
 ![Coverage](.github/badges/jacoco.svg)
 
 A Spring Boot application for managing weather forecast subscriptions with email notifications.
