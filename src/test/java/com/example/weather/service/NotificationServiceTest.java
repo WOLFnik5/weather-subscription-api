@@ -3,6 +3,7 @@ package com.example.weather.service;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.example.weather.exception.NotificationException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
@@ -74,7 +75,10 @@ class NotificationServiceTest {
         logger.addAppender(listAppender);
 
         assertThatThrownBy(() -> service.send("to@example.com", "msg").join())
-                .hasCause(ex);
+                .hasCauseInstanceOf(NotificationException.class)
+                .cause()
+                .hasRootCauseInstanceOf(MailSendException.class)
+                .hasRootCauseMessage("boom");
 
         assertThat(listAppender.list)
                 .extracting(ILoggingEvent::getFormattedMessage)
