@@ -6,12 +6,10 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-@SuppressWarnings("unused")
 @Configuration
 @EnableAsync
 public class AsyncConfig {
 
-    @SuppressWarnings("unused")
     @Bean("taskExecutor")
     public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
