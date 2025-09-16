@@ -5,29 +5,67 @@ on:
     branches: [ main, master ]
   pull_request:
 
+permissions:
+  contents: write  # потрібно для автокоміту бейджа (на push у main)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [ '21' ]  # можеш додати '17' якщо хочеш дві версії
+
+    env:
+      MAVEN_OPTS: "-Dmaven.test.failure.ignore=false -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+      TESTCONTAINERS_CHECKS_DISABLE: "true"  # опціонально: пришвидшує старт у CI
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
+          java-version: ${{ matrix.java }}
+          distribution: temurin
+          cache: maven
+
+      - name: Show Docker info (for Testcontainers)
+        run: |
+          docker --version
+          docker info
 
       - name: Build, test & coverage
         run: ./mvnw -B -ntp verify
 
-      - name: Upload surefire reports
+      - name: Generate JaCoCo badge
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          generate-coverage-badge: true
+          jacoco-csv-report-file: target/site/jacoco/jacoco.csv
+          badges-directory: .github/badges
+
+      - name: Commit badge (only on push to main/master)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          if [[ -n "$(git status --porcelain .github/badges)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .github/badges
+            git commit -m "chore(ci): update JaCoCo badge"
+            git push
+          fi
+
+      - name: Upload surefire/failsafe reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: surefire-reports
+          name: test-reports-${{ matrix.java }}
           path: |
             **/target/surefire-reports/**
             **/target/failsafe-reports/**
@@ -37,7 +75,19 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-report
+          name: jacoco-report-${{ matrix.java }}
           path: |
             **/target/site/jacoco/**
+          if-no-files-found: ignore
+
+      - name: Upload Checkstyle & SpotBugs reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis-${{ matrix.java }}
+          path: |
+            **/target/site/checkstyle*.xml
+            **/target/site/checkstyle*.html
+            **/target/spotbugsXml.xml
+            **/target/spotbugs.html
           if-no-files-found: ignore
