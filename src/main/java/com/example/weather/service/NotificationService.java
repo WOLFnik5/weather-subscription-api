@@ -1,6 +1,6 @@
 package com.example.weather.service;
 
-import com.example.weather.exception.NotificationException;
+
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +21,6 @@ public class NotificationService {
     private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
     private final JavaMailSender mailSender;
 
-    @Qualifier("taskExecutor")
-    private final Executor taskExecutor;
-
     @Value("${app.mail.from:no-reply@example.com}")
     private String mailFrom;
 
@@ -33,11 +28,10 @@ public class NotificationService {
     public CompletableFuture<Void> send(String email, String message) {
         try {
             SimpleMailMessage mailMessage = new SimpleMailMessage();
-            mailMessage.setFrom(mailFrom);
+            mailMessage.setFrom(mailFrom); // <-- використай
             mailMessage.setTo(email);
-            mailMessage.setSubject("Weather update");
+            mailMessage.setSubject("Weather notification");
             mailMessage.setText(message);
-
             mailSender.send(mailMessage);
             return CompletableFuture.completedFuture(null);
         } catch (MailException e) {

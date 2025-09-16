@@ -26,7 +26,6 @@ class SubscriptionMapperTest {
         // then
         assertThat(entity.getEmail()).isEqualTo("test@example.com");
         assertThat(entity.getCity()).isEqualTo("Kyiv");
-        // id ще не встановлюється на стадії створення
         assertThat(entity.getId()).isNull();
     }
 
