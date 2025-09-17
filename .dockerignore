@@ -1,0 +1,12 @@
+.git
+.github
+target/
+!*target/*.jar
+.mvn/
+.mvn/wrapper/maven-wrapper.jar
+.idea/
+**/*.iml
+node_modules/
+Dockerfile
+README.md
+.gitignore
