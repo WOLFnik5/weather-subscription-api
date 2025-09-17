@@ -136,7 +136,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.8.6</version> <!-- синхронізувати з версією плагіна -->
+            <version>4.8.6</version>
             <scope>provided</scope>
         </dependency>
         </dependencies>
@@ -167,6 +167,8 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+
+
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>
@@ -175,6 +177,61 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+                            <reports>
+                                <report>html</report>
+                                <report>xml</report>
+                                <report>csv</report>
+                            </reports>
+
+                            <excludes>
+                                <exclude>**/*Application.class</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/mapper/**</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+
+
+                    <execution>
+                        <id>jacoco-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.75</minimum>
+                                        </limit>
+
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.60</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+
+                            <excludes>
+                                <exclude>**/*Application.class</exclude>
+                                <exclude>**/config/**</exclude>
+                                <exclude>**/dto/**</exclude>
+                                <exclude>**/mapper/**</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>

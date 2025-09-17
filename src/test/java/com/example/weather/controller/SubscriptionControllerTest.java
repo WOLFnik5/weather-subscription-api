@@ -39,7 +39,6 @@ class SubscriptionControllerTest {
 
     @Test
     void createSubscription() throws Exception {
-        // вхідний JSON
         String reqJson = """
           {"email":"test@example.com","city":"Kyiv"}
         """;
@@ -49,10 +48,8 @@ class SubscriptionControllerTest {
         saved.setEmail("test@example.com");
         saved.setCity("Kyiv");
 
-        // стаби для сервісу
         when(service.create(any(SubscriptionRequest.class))).thenReturn(saved);
 
-        // виклик і перевірки
         mockMvc.perform(post("/api/subscriptions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(reqJson))
